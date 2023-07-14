@@ -1,4 +1,4 @@
-import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
+//import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
@@ -31,6 +31,9 @@ android {
             )
         }
     }
+    buildFeatures {
+        viewBinding = true
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -38,33 +41,36 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
-}
-
-tasks.getByPath("preBuild").dependsOn("ktlintFormat")
-
-configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-    debug.set(true)
-    verbose.set(true)
-    android.set(false)
-    outputToConsole.set(true)
-    outputColorName.set("RED")
-    ignoreFailures.set(true)
-    enableExperimentalRules.set(true)
-    additionalEditorconfigFile.set(file("/some/additional/.editorconfig"))
-    disabledRules.set(setOf("final-newline", "no-wildcard-imports"))
-    baseline.set(file("my-project-ktlint-baseline.xml"))
-    reporters {
-        reporter(ReporterType.PLAIN)
-        reporter(ReporterType.CHECKSTYLE)
-    }
-    kotlinScriptAdditionalPaths {
-        include(fileTree("scripts/"))
-    }
-    filter {
-        exclude("**/generated/**")
-        include("**/kotlin/**")
+    packaging {
+        resources.excludes.add("META-INF/*")
     }
 }
+
+//tasks.getByPath("preBuild").dependsOn("ktlintFormat")
+//
+//configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+//    debug.set(true)
+//    verbose.set(true)
+//    android.set(false)
+//    outputToConsole.set(true)
+//    outputColorName.set("RED")
+//    ignoreFailures.set(true)
+//    enableExperimentalRules.set(true)
+//    additionalEditorconfigFile.set(file("/some/additional/.editorconfig"))
+//    disabledRules.set(setOf("final-newline", "no-wildcard-imports"))
+//    baseline.set(file("my-project-ktlint-baseline.xml"))
+//    reporters {
+//        reporter(ReporterType.PLAIN)
+//        reporter(ReporterType.CHECKSTYLE)
+//    }
+//    kotlinScriptAdditionalPaths {
+//        include(fileTree("scripts/"))
+//    }
+//    filter {
+//        exclude("**/generated/**")
+//        include("**/kotlin/**")
+//    }
+//}
 
 dependencies {
     // Lifecycle
@@ -105,6 +111,9 @@ dependencies {
     implementation(libs.room.ktx)
     implementation(libs.room.runtime)
     kapt(libs.room.compiler)
+
+    // Timber
+    implementation(libs.timber)
 
     // Default
     implementation(libs.core.ktx)
