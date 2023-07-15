@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 //import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 @Suppress("DSL_SCOPE_VIOLATION")
@@ -7,6 +10,9 @@ plugins {
     alias(libs.plugins.kotlinKapt)
     alias(libs.plugins.ktlintAndroid)
 }
+
+val keyProperties = Properties()
+keyProperties.load(FileInputStream(File("core.properties")))
 
 android {
     namespace = "com.arifwidayana.musiclens"
@@ -20,6 +26,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "BASE_URL", keyProperties.getProperty("BASE_URL"))
     }
 
     buildTypes {
@@ -33,6 +40,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
