@@ -1,4 +1,4 @@
-package com.arifwidayana.musiclens.data.repository
+package com.arifwidayana.musiclens.data.network.repository
 
 import com.arifwidayana.musiclens.arch.base.BaseRepository
 import com.arifwidayana.musiclens.arch.base.BaseResponse
