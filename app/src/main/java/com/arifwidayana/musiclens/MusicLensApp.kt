@@ -1,6 +1,7 @@
 package com.arifwidayana.musiclens
 
 import android.app.Application
+import com.arifwidayana.musiclens.di.MusicLensModule
 import org.koin.android.BuildConfig
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -15,7 +16,7 @@ class MusicLensApp: Application() {
             androidLogger()
             androidContext(this@MusicLensApp)
             modules(
-
+                MusicLensModule.getModules()
             )
         }
     }
