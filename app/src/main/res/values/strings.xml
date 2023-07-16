@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Music Lens</string>
+
+    #Layout
+    <string name="search_hint">Search your artist…</string>
+
+    #Error Exception
+    <string name="message_error_no_internet">Something is wrong with internet connection\nMake sure you have an Internet Connection and try again.</string>
+    <string name="message_error_unknown">Something is wrong when fetch data\nPlease try again</string>
 </resources>
