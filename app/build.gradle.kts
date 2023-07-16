@@ -1,8 +1,6 @@
 import java.io.FileInputStream
 import java.util.Properties
 
-//import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
-
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.androidApplication)
@@ -54,32 +52,6 @@ android {
     }
 }
 
-//tasks.getByPath("preBuild").dependsOn("ktlintFormat")
-//
-//configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-//    debug.set(true)
-//    verbose.set(true)
-//    android.set(false)
-//    outputToConsole.set(true)
-//    outputColorName.set("RED")
-//    ignoreFailures.set(true)
-//    enableExperimentalRules.set(true)
-//    additionalEditorconfigFile.set(file("/some/additional/.editorconfig"))
-//    disabledRules.set(setOf("final-newline", "no-wildcard-imports"))
-//    baseline.set(file("my-project-ktlint-baseline.xml"))
-//    reporters {
-//        reporter(ReporterType.PLAIN)
-//        reporter(ReporterType.CHECKSTYLE)
-//    }
-//    kotlinScriptAdditionalPaths {
-//        include(fileTree("scripts/"))
-//    }
-//    filter {
-//        exclude("**/generated/**")
-//        include("**/kotlin/**")
-//    }
-//}
-
 dependencies {
     // Lifecycle
     implementation(libs.lifecycle.runtime)
@@ -108,8 +80,12 @@ dependencies {
     // Coil
     implementation(libs.coil)
 
-    // Mock
-    implementation(libs.mock)
+    // Mockk
+    testImplementation(libs.mockk)
+
+    // Mockito
+    testImplementation(libs.mockito.core)
+    androidTestImplementation(libs.mockito.android)
 
     // Chucker
     debugImplementation(libs.chucker)
