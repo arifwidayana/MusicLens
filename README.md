@@ -2,7 +2,7 @@
 
 ### Tech Stack <a name="tech-stack"></a>
 - **MVVM Architecture**
-- **UseCase Driven**
+- **Koin**
 - **Flow**
 - **Retrofit**
 - **Coil**
