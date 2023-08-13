@@ -2,6 +2,7 @@ package com.arifwidayana.musiclens.data.network.service
 
 import com.arifwidayana.musiclens.arch.base.BaseResponse
 import com.arifwidayana.musiclens.data.network.model.response.MusicResponse
+import io.reactivex.rxjava3.core.Observable
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -15,5 +16,5 @@ interface MusicService {
      * @param artist to search artist name by string
      */
     @GET("/search")
-    suspend fun searchArtistMusic(@Query("term") artist: String): BaseResponse<List<MusicResponse>>
+    fun searchArtistMusic(@Query("term") artist: String): Observable<BaseResponse<List<MusicResponse>>>
 }
