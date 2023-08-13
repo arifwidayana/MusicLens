@@ -60,6 +60,7 @@ dependencies {
     // Retrofit
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
+    implementation(libs.retrofit.adapter.rxjava3)
 
     // Coroutine
     implementation(libs.coroutines.core)
@@ -98,6 +99,16 @@ dependencies {
 
     // Timber
     implementation(libs.timber)
+
+    // RxJava3
+    implementation(libs.rxjava)
+    implementation(libs.rxandroid)
+
+    // Dagger2
+    implementation(libs.dagger)
+    implementation(libs.dagger.android.support)
+    kapt(libs.dagger.compiler)
+    kapt(libs.dagger.android.processor)
 
     // Default
     implementation(libs.core.ktx)

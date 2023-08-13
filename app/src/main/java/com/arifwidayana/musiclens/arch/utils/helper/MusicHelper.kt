@@ -19,15 +19,15 @@ private var lastTime = DEFAULT_TIME
 
 fun playOrPauseMusic(
     currentMusic: Int,
-    musicList: List<MusicParamResponse>,
+    musicList: List<MusicParamResponse>? = emptyList(),
     seekBar: SeekBar? = null,
     isPlay: ((Int) -> Unit)? = null
 ) {
-    val url = musicList[currentMusic].previewUrl
+    val url = musicList?.get(currentMusic)?.previewUrl
     try {
         if (tempUri != url) {
             currentMusicIndex = currentMusic
-            tempUri = url
+            tempUri = url.orEmpty()
             mediaPlayer.apply {
                 reset()
                 setAudioAttributes(
@@ -41,7 +41,7 @@ fun playOrPauseMusic(
                 start()
                 isPlay?.invoke(setIcon())
             }
-            Timber.d("playOrPauseMusic: " + musicList[currentMusic].trackName)
+            Timber.d("playOrPauseMusic: " + musicList?.get(currentMusic)?.trackName)
         } else {
             mediaPlayer.apply {
                 if (isPlaying) {

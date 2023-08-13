@@ -1,35 +1,44 @@
 package com.arifwidayana.musiclens.presentation.ui
 
 import android.widget.SeekBar
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.arifwidayana.musiclens.arch.utils.ext.source
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import com.arifwidayana.musiclens.arch.base.BaseViewModel
 import com.arifwidayana.musiclens.arch.utils.helper.playNextMusic
 import com.arifwidayana.musiclens.arch.utils.helper.playOrPauseMusic
 import com.arifwidayana.musiclens.arch.utils.helper.playPreviousMusic
 import com.arifwidayana.musiclens.arch.utils.helper.progressSeekbar
+import com.arifwidayana.musiclens.arch.wrapper.ViewResource
 import com.arifwidayana.musiclens.data.network.model.request.MusicRequest
+import com.arifwidayana.musiclens.domain.MusicViewParam
 import com.arifwidayana.musiclens.domain.SearchArtistUseCase
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.schedulers.Schedulers
+import io.reactivex.rxjava3.subjects.PublishSubject
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
-class MainViewModel(
+class MainViewModel @Inject constructor(
     private val searchArtistUseCase: SearchArtistUseCase
-) : MainContract, ViewModel() {
-    private var searchJob: Job? = null
-    private val _state = MutableStateFlow(MainState())
-    override val state: StateFlow<MainState> = _state
+) : MainContract, BaseViewModel() {
+    private val subject = PublishSubject.create<String>()
+    private val _state: MutableLiveData<MainState> = MutableLiveData(MainState())
+    override val state: LiveData<MainState> = _state
+    private val _stateMusic: MutableLiveData<ViewResource<MusicViewParam>> = MutableLiveData()
+    val stateMusic: LiveData<ViewResource<MusicViewParam>> = _stateMusic
 
     /**
      * init first searchArtist() function after apps started
      */
     init {
         searchArtist()
+        addDisposable(
+            subject.debounce(1500, TimeUnit.MILLISECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    searchArtist(it)
+                }
+        )
     }
 
     /**
@@ -38,12 +47,8 @@ class MainViewModel(
     override fun onEvent(event: MainEvent) {
         when (event) {
             is MainEvent.SearchQueryChange -> {
-                _state.update { it.copy(searchQuery = event.query) }
-                searchJob?.cancel()
-                searchJob = viewModelScope.launch {
-                    delay(1500)
-                    searchArtist()
-                }
+                _state.value = _state.value?.copy(searchQuery = event.query)
+                subject.onNext(event.query)
             }
         }
     }
@@ -52,24 +57,16 @@ class MainViewModel(
      * @param artist will execute default param from
      * state value in MainState dataclass
      */
-    private fun searchArtist(artist: String = state.value.searchQuery) {
-        viewModelScope.launch {
-            searchArtistUseCase(MusicRequest(artist = artist)).collect { vr ->
-                vr.source(
-                    doOnSuccess = { src ->
-                        src.payload?.let { res ->
-                            _state.update { it.copy(listMusic = res) }
-                            state.value.listMusic
-                        }
-                    },
-                    doOnError = { e ->
-                        e.exception?.let { res ->
-                            _state.update { it.copy(errorMessage = res) }
-                        }
-                    }
-                )
-            }
-        }
+    private fun searchArtist(artist: String? = state.value?.searchQuery) {
+        addDisposable(
+            searchArtistUseCase(MusicRequest(artist = artist.toString()))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { src ->
+                    _stateMusic.postValue(src)
+                    _state.value = src.payload?.let { _state.value?.copy(listMusic = it) }
+                }
+        )
     }
 
     /**
@@ -81,18 +78,17 @@ class MainViewModel(
      */
     override fun playOrPause(
         currentMusic: Int,
+        musicList: MusicViewParam,
         seekBar: SeekBar?,
         progress: Int,
         fromUser: Boolean
     ) {
-        viewModelScope.launch {
-            playOrPauseMusic(
-                currentMusic = currentMusic,
-                musicList = state.value.listMusic,
-                seekBar = seekBar
-            ) { isPlay ->
-                _state.update { it.copy(iconButton = isPlay) }
-            }
+        playOrPauseMusic(
+            currentMusic = currentMusic,
+            musicList = musicList,
+            seekBar = seekBar
+        ) { isPlay ->
+            _state.value = _state.value?.copy(iconButton = isPlay)
         }
     }
 
@@ -101,14 +97,12 @@ class MainViewModel(
      * @param currentMusic getting position index from list music selected
      * @param seekBar running for seekbar progress sync with media player
      */
-    override fun nextMusic(currentMusic: Int, seekBar: SeekBar?) {
-        viewModelScope.launch {
-            playNextMusic(
-                currentMusic = currentMusic,
-                musicList = state.value.listMusic,
-                seekBar = seekBar
-            )
-        }
+    override fun nextMusic(currentMusic: Int, musicList: MusicViewParam, seekBar: SeekBar?) {
+        playNextMusic(
+            currentMusic = currentMusic,
+            musicList = musicList,
+            seekBar = seekBar
+        )
     }
 
     /**
@@ -116,14 +110,12 @@ class MainViewModel(
      * @param currentMusic getting position index from list music selected
      * @param seekBar running for seekbar progress sync with media player
      */
-    override fun previousMusic(currentMusic: Int, seekBar: SeekBar?) {
-        viewModelScope.launch {
-            playPreviousMusic(
-                currentMusic = currentMusic,
-                musicList = state.value.listMusic,
-                seekBar = seekBar
-            )
-        }
+    override fun previousMusic(currentMusic: Int, musicList: MusicViewParam, seekBar: SeekBar?) {
+        playPreviousMusic(
+            currentMusic = currentMusic,
+            musicList = musicList,
+            seekBar = seekBar
+        )
     }
 
     /**
@@ -133,16 +125,6 @@ class MainViewModel(
      * @param fromUser is user interaction with seekbar
      */
     override fun progressSeekbarMusic(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-        viewModelScope.launch {
-            progressSeekbar(seekBar, progress, fromUser)
-        }
-    }
-
-    /**
-     * when this ViewModel is no longer used and will be destroyed
-     */
-    override fun onCleared() {
-        super.onCleared()
-        viewModelScope.cancel()
+        progressSeekbar(seekBar, progress, fromUser)
     }
 }

@@ -5,14 +5,15 @@ import com.arifwidayana.musiclens.arch.base.BaseResponse
 import com.google.gson.Gson
 import com.google.gson.JsonParseException
 import okhttp3.ResponseBody
-import org.koin.java.KoinJavaComponent
+import javax.inject.Inject
 
 /**
  * Repository child of BaseRepository using for
  * catching the error and throw error message
  */
 open class Repository : BaseRepository() {
-    private val gson: Gson by KoinJavaComponent.inject(Gson::class.java)
+    @Inject
+    protected lateinit var gson: Gson
 
     override fun <T> getErrorMessageFromApi(response: T): String {
         val responseBody = response as ResponseBody

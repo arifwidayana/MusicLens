@@ -4,19 +4,22 @@ import com.arifwidayana.musiclens.arch.base.BaseResponse
 import com.arifwidayana.musiclens.data.network.model.request.MusicRequest
 import com.arifwidayana.musiclens.data.network.model.response.MusicResponse
 import com.arifwidayana.musiclens.data.network.service.MusicService
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.core.Single
+import javax.inject.Inject
 
 interface MusicDatasource {
-    suspend fun searchArtistMusic(musicRequest: MusicRequest): BaseResponse<List<MusicResponse>>
+    fun searchArtistMusic(musicRequest: MusicRequest): Observable<BaseResponse<List<MusicResponse>>>
 }
 
 /**
  * @param MusicService get data artist and collect from network service
  * implement MusicDatasource function
  */
-class MusicDatasourceImpl(
+class MusicDatasourceImpl @Inject constructor(
     private val musicService: MusicService
 ) : MusicDatasource {
-    override suspend fun searchArtistMusic(musicRequest: MusicRequest): BaseResponse<List<MusicResponse>> {
+    override fun searchArtistMusic(musicRequest: MusicRequest): Observable<BaseResponse<List<MusicResponse>>> {
         return musicService.searchArtistMusic(musicRequest.artist)
     }
 }

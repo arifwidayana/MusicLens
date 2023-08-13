@@ -5,12 +5,11 @@ import com.arifwidayana.musiclens.arch.wrapper.DataResource
 import com.arifwidayana.musiclens.data.network.datasource.MusicDatasource
 import com.arifwidayana.musiclens.data.network.model.request.MusicRequest
 import com.arifwidayana.musiclens.data.network.model.response.MusicResponse
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import io.reactivex.rxjava3.core.Observable
 
 typealias MusicDataResource = DataResource<BaseResponse<List<MusicResponse>>>
 interface MusicRepository {
-    suspend fun searchArtistMusic(musicRequest: MusicRequest): Flow<MusicDataResource>
+    fun searchArtistMusic(musicRequest: MusicRequest): Observable<MusicDataResource>
 }
 
 /**
@@ -19,7 +18,7 @@ interface MusicRepository {
 class MusicRepositoryImpl(
     private val musicDatasource: MusicDatasource
 ): MusicRepository, Repository() {
-    override suspend fun searchArtistMusic(musicRequest: MusicRequest): Flow<MusicDataResource> = flow {
-        emit(safeNetworkCall { musicDatasource.searchArtistMusic(musicRequest) })
+    override fun searchArtistMusic(musicRequest: MusicRequest): Observable<MusicDataResource> = Observable.defer {
+        safeNetworkCall { musicDatasource.searchArtistMusic(musicRequest) }
     }
 }

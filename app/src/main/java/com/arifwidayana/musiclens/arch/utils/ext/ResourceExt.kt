@@ -17,6 +17,16 @@ fun <T> ViewResource<T>.source(
     }
 }
 
+fun <T> DataResource<T>.source(
+    doOnSuccess: (resource: DataResource<T>) -> Unit,
+    doOnError: (resource: DataResource<T>) -> Unit
+) {
+    when (this) {
+        is DataResource.Success -> doOnSuccess.invoke(this)
+        is DataResource.Error -> doOnError.invoke(this)
+    }
+}
+
 suspend fun <T> ViewResource<T>.suspendSource(
     doOnSuccess: (suspend (resource: ViewResource<T>) -> Unit)? = null,
     doOnError: (suspend (resource: ViewResource<T>) -> Unit)? = null,
