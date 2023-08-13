@@ -1,23 +1,21 @@
 package com.arifwidayana.musiclens.presentation.ui
 
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.arifwidayana.musiclens.arch.base.BaseActivity
 import com.arifwidayana.musiclens.arch.utils.ext.changed
+import com.arifwidayana.musiclens.arch.utils.ext.source
 import com.arifwidayana.musiclens.data.network.model.response.MusicParamResponse
 import com.arifwidayana.musiclens.databinding.ActivityMainBinding
+import com.arifwidayana.musiclens.domain.MusicViewParam
 import com.arifwidayana.musiclens.presentation.adapter.MusicAdapter
-import kotlinx.coroutines.launch
-import org.koin.android.ext.android.inject
 import timber.log.Timber
 
 class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(
-    ActivityMainBinding::inflate
+    ActivityMainBinding::inflate,
+    MainViewModel::class.java
 ) {
-    override val viewModel: MainViewModel by inject()
     private var currentMusic = 0
     private var adapter: MusicAdapter? = null
+    private lateinit var musicList: MusicViewParam
     override fun initView() {
         onView()
         onClick()
@@ -39,6 +37,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(
             btnPrevious.setOnClickListener {
                 viewModel.previousMusic(
                     currentMusic = --currentMusic,
+                    musicList = musicList,
                     seekBar = sbMusic
                 )
                 selectedMusic()
@@ -46,6 +45,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(
             btnPlay.setOnClickListener {
                 viewModel.playOrPause(
                     currentMusic = currentMusic,
+                    musicList = musicList,
                     seekBar = sbMusic
                 )
                 selectedMusic()
@@ -53,6 +53,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(
             btnNext.setOnClickListener {
                 viewModel.nextMusic(
                     currentMusic = ++currentMusic,
+                    musicList = musicList,
                     seekBar = sbMusic
                 )
                 selectedMusic()
@@ -64,14 +65,21 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(
      * observe data from view model using lifecycle
      */
     override fun observeData() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.state.collect {
-                    setMusicAdapter(it.listMusic)
-                    setIconButton(it.iconButton)
-                    Timber.tag("E").e(it.errorMessage)
+        viewModel.stateMusic.observe(this) {
+            it.source(
+                doOnSuccess = { src ->
+                    src.payload?.let { res ->
+                        musicList = res
+                        setMusicAdapter(res)
+                    }
+                },
+                doOnError = { e ->
+                    Timber.tag("E").e(e.exception)
                 }
-            }
+            )
+        }
+        viewModel.state.observe(this) {
+//            setIconButton(it.iconButton)
         }
     }
 
@@ -90,6 +98,7 @@ class MainActivity : BaseActivity<ActivityMainBinding, MainViewModel>(
             currentMusic = it
             viewModel.playOrPause(
                 currentMusic = currentMusic,
+                musicList = musicList,
                 seekBar = binding.sbMusic
             )
             selectedMusic()
